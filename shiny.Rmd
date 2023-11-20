@@ -1,0 +1,69 @@
+---
+title: "shiny_apps"
+author: "Kimberly Matarrita"
+date: "2023-11-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(shiny)
+library(shinydashboard)
+library(dplyr)
+library(readxl)
+library(ggplot2)
+library(gapminder)
+```
+
+```{r}
+datos_empleo_genero <- read_csv("datos/datos_empleo_genero.csv")
+View(datos_empleo_genero)
+```
+
+```{r}
+
+ui <- fluidPage(
+  titlePanel("Datos de Desempleo y Género "),
+  
+  sidebarLayout(
+    sidebarPanel(
+   
+      selectInput("pais_selector", "Selecciona un país:", choices = unique(datos_empleo_genero$pais_region)),
+      
+   
+      sliderInput("ano_selector", "Selecciona un año:", min = min(datos_empleo_genero$anyo), max = max(datos_empleo_genero$anyo), value = min(datos_empleo_genero$anyo)),
+      
+      
+      radioButtons("genero_selector", "Selecciona un género:", choices = c("Mujeres", "Hombres"), selected = "Mujeres"),
+      
+      actionButton("actualizar_btn", "Actualizar")
+    ),
+    
+    mainPanel(
+      
+      plotOutput("grafico_barras"),
+      
+      
+      plotOutput("grafico_lineas"),
+      
+   
+      plotOutput("grafico_dispersion"),
+      
+     
+      tableOutput("tabla")
+    )
+  )
+)
+server <- function(input, output,Buttons)
+
+datos_filtrados <- reactive({
+  datos_empleo_genero |>
+    filter(pais_region == input$pais_selector, anyo == input$ano_selector)|>
+    select(pais_region, anyo, empleadoras_mujeres, empleadores_hombres, empleo_agricultura_mujeres, empleo_agricultura_hombres)
+})
+
+shinyApp(ui, server)
+```
+
+
+
